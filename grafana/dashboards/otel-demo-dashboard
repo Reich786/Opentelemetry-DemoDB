@@ -1,0 +1,123 @@
+{
+    "id": null,
+    "uid": "otel-demo-dashboard",
+    "title": "OpenTelemetry Demo KPIs",
+    "tags": ["otel", "demo", "kpi"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "Total HTTP Requests",
+        "type": "timeseries",
+        "gridPos": {"x":0,"y":0,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m]))",
+            "legendFormat": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate (5xx / Total)",
+        "type": "timeseries",
+        "gridPos": {"x":12,"y":0,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+            "legendFormat": "Error Rate"
+          }
+        ]
+      },
+      {
+        "title": "p95 Latency (s)",
+        "type": "timeseries",
+        "gridPos": {"x":0,"y":6,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))",
+            "legendFormat": "p95"
+          }
+        ]
+      },
+      {
+        "title": "Frontend Latency (p95)",
+        "type": "timeseries",
+        "gridPos": {"x":12,"y":6,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (le, service=\"frontend\") (rate(http_request_duration_seconds_bucket[5m])))",
+            "legendFormat": "frontend p95"
+          }
+        ]
+      },
+      {
+        "title": "Cart Service Latency (p95)",
+        "type": "timeseries",
+        "gridPos": {"x":0,"y":12,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (le, service=\"cartservice\") (rate(http_request_duration_seconds_bucket[5m])))",
+            "legendFormat": "cart p95"
+          }
+        ]
+      },
+      {
+        "title": "CPU Usage (per service)",
+        "type": "timeseries",
+        "gridPos": {"x":12,"y":12,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{namespace=\"otel-demo\"}[5m])",
+            "legendFormat": "{{pod}}"
+          }
+        ]
+      },
+      {
+        "title": "Memory Usage (per service)",
+        "type": "timeseries",
+        "gridPos": {"x":0,"y":18,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{namespace=\"otel-demo\"}",
+            "legendFormat": "{{pod}}"
+          }
+        ]
+      },
+      {
+        "title": "gRPC Error Rate",
+        "type": "timeseries",
+        "gridPos": {"x":12,"y":18,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "sum(rate(grpc_server_handled_total{grpc_code!=\"OK\"}[5m])) / sum(rate(grpc_server_handled_total[5m]))",
+            "legendFormat": "gRPC Errors"
+          }
+        ]
+      },
+      {
+        "title": "DB Query Latency (p95)",
+        "type": "timeseries",
+        "gridPos": {"x":0,"y":24,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (le) (rate(db_client_request_duration_seconds_bucket[5m])))",
+            "legendFormat": "DB p95"
+          }
+        ]
+      },
+      {
+        "title": "Queue Depth (Kafka/Redis)",
+        "type": "timeseries",
+        "gridPos": {"x":12,"y":24,"w":12,"h":6},
+        "targets": [
+          {
+            "expr": "queue_length{namespace=\"otel-demo\"}",
+            "legendFormat": "{{queue}}"
+          }
+        ]
+      }
+    ]
+  }
+  
