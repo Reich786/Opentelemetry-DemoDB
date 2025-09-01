@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: otel-demo-prometheusrules
+  namespace: monitoring
+spec:
+  groups:
+  - name: otel-demo.rules
+    rules:
+    - alert: HighErrorRate
+      expr: (sum by (service) (rate(http_requests_total{namespace="otel-demo",status=~"5.."}[5m])) / sum by (service) (rate(http_requests_total{namespace="otel-demo"}[5m]))) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate for {{ $labels.service }}"
+        description: "Error rate > 5% for service {{ $labels.service }} over 5m. Investigate traces & logs."
+
+    - alert: HighLatencyP95
+      expr: histogram_quantile(0.95, sum by (service, le) (rate(http_request_duration_seconds_bucket{namespace=\"otel-demo\"}[5m]))) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High p95 latency for {{ $labels.service }}"
+        description: "p95 > 2s for service {{ $labels.service }} over 5m."
+
+    - alert: NoTraffic
+      expr: sum(rate(http_requests_total{namespace="otel-demo"}[5m])) == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "No traffic to otel-demo"
+        description: "No HTTP requests seen in last 5m."
